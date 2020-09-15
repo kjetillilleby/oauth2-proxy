@@ -165,7 +165,7 @@ func Validate(o *options.Options) error {
 			var jwtIssuers []jwtIssuer
 			jwtIssuers, msgs = parseJwtIssuers(o.ExtraJwtIssuers, msgs)
 			for _, jwtIssuer := range jwtIssuers {
-				verifier, err := newVerifierFromJwtIssuer(jwtIssuer)
+				verifier, err := newVerifierFromJwtIssuer(jwtIssuer, o.InsecureOIDCSkipIssuerVerification)
 				if err != nil {
 					msgs = append(msgs, fmt.Sprintf("error building verifiers: %s", err))
 				}
@@ -381,9 +381,10 @@ func parseJwtIssuers(issuers []string, msgs []string) ([]jwtIssuer, []string) {
 
 // newVerifierFromJwtIssuer takes in issuer information in jwtIssuer info and returns
 // a verifier for that issuer.
-func newVerifierFromJwtIssuer(jwtIssuer jwtIssuer) (*oidc.IDTokenVerifier, error) {
+func newVerifierFromJwtIssuer(jwtIssuer jwtIssuer, skipIssuerVerification bool) (*oidc.IDTokenVerifier, error) {
 	config := &oidc.Config{
 		ClientID: jwtIssuer.audience,
+		SkipIssuerCheck: skipIssuerVerification,
 	}
 	// Try as an OpenID Connect Provider first
 	var verifier *oidc.IDTokenVerifier
